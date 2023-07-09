@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>글조회</title>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+</head>
+<body>
+<h1 th:text="${boardDetail.id} + '번 조회'"></h1>
+<div>
+<!-- 글내용 -->
+  <div>
+    <table>
+      <tr>
+        <th>글번호</th>
+        <td th:text="${boardDetail.id}"></td>
+      </tr>
+      <tr>
+        <th>작성자</th>
+        <td th:text="${boardDetail.writer}"></td>
+      </tr>
+      <tr>
+        <th>제목</th>
+        <td th:text="${boardDetail.title}"></td>
+      </tr>
+      <tr>
+        <th>내용</th>
+        <td th:text="${boardDetail.contents}"></td>
+      </tr>
+      <tr>
+        <th>조회수</th>
+        <td th:text="${boardDetail.hits}"></td>
+      </tr>
+      <tr>
+        <th>작성일</th>
+        <td th:text="${boardDetail.createdTime}"></td>
+      </tr>
+      <tr th:if="${boardDetail.updatedTime != null}">
+        <th>수정일</th>
+        <td th:text="${boardDetail.updatedTime}"></td>
+      </tr>
+    </table>
+  </div>
+  <!-- 페이지버튼 -->
+  <div>
+    <button type="button" th:onclick="boardList()">목록</button>
+    <button type="button" th:onclick="boardUpdate()">수정</button>
+    <button type="button" th:onclick="boardDelete()">삭제</button>
+  </div>
+  <!-- 댓글입력 -->
+  <div>
+    <p>댓글쓰기</p>
+    <input type="text" id="comment_writer" placeholder="작성자">
+    <input type="text" id="comment_contents" placeholder="내용">
+    <button type="button" id="comment_write_btn" onclick="commentWrite()">댓글추가</button>
+  </div>
+  <!-- 댓글출력 -->
+  <div id="comment-list">
+    <table>
+      <tr>
+        <th>댓글번호</th>
+        <th>작성자</th>
+        <th>내용</th>
+        <th>작성시간</th>
+      </tr>
+      <tr th:each="comment: ${commentList}">
+        <td th:text="${comment.id}"></td>
+        <td th:text="${comment.commentWriter}"></td>
+        <td th:text="${comment.commentContents}"></td>
+        <td th:text="${comment.commentCreatedTime}"></td>
+      </tr>
+    </table>
+  </div>
+</div>
+</body>
+<script th:inline="javascript">
+  <!-- 페이지요청 -->
+  const boardList = () => {
+      location.href = "/board?page=" + [[${page}]];
+  }
+  const boardUpdate = () => {
+      location.href = "/update/" + [[${boardDetail.id}]] + "?page=" + [[${page}]];
+  }
+  const boardDelete = () => {
+      location.href = "/delete/" + [[${boardDetail.id}]];
+  }
+
+  <!-- 댓글 출력 -->
+  const commentWrite = () => {
+      const writer = document.getElementById("comment_writer").value;
+      const contents = document.getElementById("comment_contents").value;
+      const id = [[${boardDetail.id}]];
+
+      $.ajax({
+          type: "post",
+          url: "/comment/save",
+          data: {
+              "commentWriter": writer,
+              "commentContents": contents,
+              "boardId": id
+          },
+          success: function(res) {
+              console.log("res = " + res);
+              let output = "<table>";
+              output += "<tr><th>댓글번호</th>";
+              output += "<th>작성자</th>";
+              output += "<th>내용</th>";
+              output += "<th>작성시간</th>";
+              for (let i in res) {
+                  output += "<tr>";
+                  output += "<td>" + res[i].id + "</td>";
+                  output += "<td>" + res[i].commentWriter + "</td>";
+                  output += "<td>" + res[i].commentContents + "</td>";
+                  output += "<td>" + res[i].commentCreatedTime + "</td>";
+                  output += "</tr>";
+              }
+              output += "</table>";
+              document.getElementById("comment-list").innerHTML = output;
+              document.getElementById("comment_writer").value = "";
+              document.getElementById("comment_contents").value = "";
+          },
+          error: function(err) {
+              console.log("요청실패", err);
+          }
+      });
+  }
+</script>
+</html>

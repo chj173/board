@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판</title>
+</head>
+<body>
+<div>
+    <table>
+        <tr>
+            <th>글번호</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>조회수</th>
+            <th>작성일</th>
+        </tr>
+        <tr th:each="board: ${boardList}">
+            <td th:text="${board.id}"></td>
+            <td><a th:href="@{|/detail/${board.id}|(page=${boardList.number + 1})}" th:text="${board.title}"></a></td>
+            <td th:text="${board.writer}"></td>
+            <td th:text="${board.hits}"></td>
+            <td th:text="${board.createdTime}"></td>
+        </tr>
+    </table>
+</div>
+<div>
+    <a th:unless="${boardList.first}" th:href="@{/(page = 1, keyword = ${param.keyword})}">처음</a>
+    <a th:unless="${boardList.first}" th:href="@{/(page = ${boardList.getNumber}, keyword = ${param.keyword})}">이전</a>
+    <th:block th:each="page: ${#numbers.sequence(startPage, endPage)}">
+        <a th:if="${page != boardList.number + 1}"
+           th:href="@{/(page = ${page}, keyword = ${param.keyword})}"
+           th:text="${page}"></a>
+        <strong th:if="${page == boardList.number + 1}"
+                th:text="${page}"></strong>
+    </th:block>
+    <a th:unless="${boardList.last}" th:href="@{/(page = ${boardList.number + 2}, keyword = ${param.keyword})}">다음</a>
+    <a th:unless="${boardList.last}" th:href="@{/(page = ${boardList.totalPages}, keyword = ${param.keyword})}">끝</a>
+</div>
+<form action="/board" method="get">
+    <input type="text" name="keyword">
+    <button type="submit">검색</button>
+</form>
+<br><button type="button" th:onclick="|location.href = '@{/write}'|">글작성</button>
+</body>
+</html>
